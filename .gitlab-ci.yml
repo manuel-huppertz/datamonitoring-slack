@@ -1,0 +1,19 @@
+stages:
+  - deploy
+
+deploy:
+  image: google/cloud-sdk:latest
+  stage: deploy
+  script:
+    - echo "$GCP_SERVICE_ACCOUNT_KEY_BASE64" | base64 -d > key.json
+    - gcloud auth activate-service-account --key-file=key.json
+    - gcloud config set project $PROJECT_ID
+    - gcloud functions deploy data_quality_monitoring \
+        --runtime python312 \
+        --trigger-http \
+        --allow-unauthenticated \
+        --entry-point=my_function \
+        --region=europe-west3 \
+        --source=.
+  only:
+    - main
